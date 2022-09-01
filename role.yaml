@@ -1,0 +1,74 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: my-role-devops-group
+aggregationRule:
+  clusterRoleSelectors:
+  - matchLabels:
+      rbac.cimbmy.com/aggregate-to-devopsgroup: "true"
+rules: [] # The control plane automatically fills in the rules
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: my-devopsgroup-common
+  labels:
+    rbac.cimbmy.com/aggregate-to-devopsgroup: "true"
+rules:
+- apiGroups: [""]
+  resources: ["secrets"]
+  verbs: ["list"]
+- apiGroups: [""]
+  resources: ["pods", "cronjobs"]
+  verbs: ["get", "watch", "list", "create", "delete", "patch", "deletecollection", "update"]
+- apiGroups: ["*"]
+  resources:
+  - bindings
+  - componentstatuses
+  - configmaps
+  - endpoints
+  - events
+  - limitranges
+  - namespaces
+  - nodes
+  - persistentvolumeclaims
+  - persistentvolumes
+  - podtemplates
+  - replicationcontrollers
+  - resourcequotas
+  - serviceaccounts
+  - services
+  - apiservices
+  - controllerrevisions
+  - daemonsets
+  - deployments
+  - replicasets
+  - statefulsets
+  verbs: ["*"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: my-devopsgroup-tbs
+  labels:
+    rbac.cimbmy.com/aggregate-to-devopsgroup: "true"
+rules:
+- apiGroups: ["kpack.io"]
+  resources: ["*"]
+  verbs: ["*"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: david-binding-devops-group
+subjects:
+- kind: Group
+  name: oidc:ldapgroup # case sensitive,from ldap server group
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: ClusterRole 
+  name: my-role-devops-group 
+  apiGroup: rbac.authorization.k8s.io
